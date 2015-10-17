@@ -35,6 +35,7 @@ func Patch(old io.Reader, new io.Writer, patch io.Reader) error {
 	if err != nil {
 		return err
 	}
+	defer cpfbz2.Close()
 
 	diffbuf := make([]byte, hdr.DiffLen)
 	_, err = io.ReadFull(patch, diffbuf)
@@ -45,12 +46,14 @@ func Patch(old io.Reader, new io.Writer, patch io.Reader) error {
 	if err != nil {
 		return err
 	}
+	defer dpfbz2.Close()
 
 	// The entire rest of the file is the extra block.
 	epfbz2, err := newDecompressor(patch)
 	if err != nil {
 		return err
 	}
+	defer epfbz2.Close()
 
 	obuf, err := ioutil.ReadAll(old)
 	if err != nil {

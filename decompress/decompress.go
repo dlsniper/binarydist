@@ -4,7 +4,8 @@ import "io"
 
 type (
 	Decompressor interface {
-		Read(p []byte) (n int, err error)
+		Read([]byte) (int, error)
+		Close() (error)
 	}
 
 	// NewDecompressor defines the function that will be used to generate a new decompressor
