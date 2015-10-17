@@ -164,18 +164,17 @@ func search(I []int, obuf, nbuf []byte, st, en int) (pos, n int) {
 
 		if x > y {
 			return I[st], x
-		} else {
-			return I[en], y
 		}
+
+		return I[en], y
 	}
 
 	x := st + (en-st)/2
 	if bytes.Compare(obuf[I[x]:], nbuf) < 0 {
 		return search(I, obuf, nbuf, x, en)
-	} else {
-		return search(I, obuf, nbuf, st, x)
 	}
-	panic("unreached")
+
+	return search(I, obuf, nbuf, st, x)
 }
 
 // Diff computes the difference between old and new, according to the bsdiff
@@ -225,7 +224,7 @@ func diff(obuf, nbuf []byte, patch io.WriteSeeker) error {
 	}
 
 	// Compute the differences, writing ctrl as we go
-	pfbz2, err := newBzip2Writer(patch)
+	pfbz2, err := newCompressor(patch)
 	if err != nil {
 		return err
 	}
@@ -351,7 +350,7 @@ func diff(obuf, nbuf []byte, patch io.WriteSeeker) error {
 	hdr.CtrlLen = int64(l64 - 32)
 
 	// Write compressed diff data
-	pfbz2, err = newBzip2Writer(patch)
+	pfbz2, err = newCompressor(patch)
 	if err != nil {
 		return err
 	}
@@ -377,7 +376,7 @@ func diff(obuf, nbuf []byte, patch io.WriteSeeker) error {
 	hdr.DiffLen = n64 - l64
 
 	// Write compressed extra data
-	pfbz2, err = newBzip2Writer(patch)
+	pfbz2, err = newCompressor(patch)
 	if err != nil {
 		return err
 	}
