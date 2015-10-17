@@ -1,0 +1,25 @@
+machine:
+  environment:
+    PATH: /home/ubuntu/.gimme/versions/go1.5.1.linux.amd64/bin:${PATH}
+    GOROOT: /home/ubuntu/.gimme/versions/go1.5.1.linux.amd64
+dependencies:
+  pre:
+    - echo "" > /home/ubuntu/.gitconfig
+  override:
+    - sudo apt-get install -qq -y bsdiff
+    - sudo curl -sL -o /usr/local/bin/gimme https://raw.githubusercontent.com/travis-ci/gimme/master/gimme
+    - sudo chmod +x /usr/local/bin/gimme
+    - eval "$(GIMME_GO_VERSION=1.5.1 gimme)"
+    - go get -v -u github.com/mattn/goveralls
+  cache_directories:
+    - "/home/ubuntu/.go_workspace"
+    - "/home/ubuntu/.gimme"
+test:
+  pre:
+    - mkdir -p /home/ubuntu/.go_workspace/src/github.com/dlsniper
+    - ln -nfs /home/ubuntu/binarydist /home/ubuntu/.go_workspace/src/github.com/dlsniper/binarydist
+  override:
+    - cd /home/ubuntu/.go_workspace/src/github.com/dlsniper/binarydist && go test -race -v -covermode=count -coverprofile=/tmp/coverage.out .
+  post:
+    - goveralls -coverprofile=/tmp/coverage.out -service=circleci -repotoken $COVERALLS_TOKEN
+    - rm -f /home/ubuntu/.go_workspace/src/github.com/dlsniper/binarydist
