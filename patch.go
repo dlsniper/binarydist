@@ -2,7 +2,6 @@ package binarydist
 
 import (
 	"bytes"
-	"compress/bzip2"
 	"encoding/binary"
 	"errors"
 	"io"
@@ -32,17 +31,26 @@ func Patch(old io.Reader, new io.Writer, patch io.Reader) error {
 	if err != nil {
 		return err
 	}
-	cpfbz2 := bzip2.NewReader(bytes.NewReader(ctrlbuf))
+	cpfbz2, err := newDecompressor(bytes.NewReader(ctrlbuf))
+	if err != nil {
+		return err
+	}
 
 	diffbuf := make([]byte, hdr.DiffLen)
 	_, err = io.ReadFull(patch, diffbuf)
 	if err != nil {
 		return err
 	}
-	dpfbz2 := bzip2.NewReader(bytes.NewReader(diffbuf))
+	dpfbz2, err := newDecompressor(bytes.NewReader(diffbuf))
+	if err != nil {
+		return err
+	}
 
 	// The entire rest of the file is the extra block.
-	epfbz2 := bzip2.NewReader(patch)
+	epfbz2, err := newDecompressor(patch)
+	if err != nil {
+		return err
+	}
 
 	obuf, err := ioutil.ReadAll(old)
 	if err != nil {
